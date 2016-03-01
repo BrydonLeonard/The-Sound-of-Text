@@ -18,9 +18,12 @@ public class TextToNotesTest {
         //mm.forMajorUpDown(60, (i) -> mm.play(i));
         //mm.forMinorUpDown(60, (i) -> mm.play(i));
 
-        mm.playMajor(str);
-        Thread.sleep(1000);
-        mm.playMinor(str);
+        //mm.playMajor(str);
+        //Thread.sleep(1000);
+        //mm.playMinor(str);
+        //Thread.sleep(1000);
+        mm.playMajorChords(str);
+        //mm.playMinorChords(str);
         Thread.sleep(1000);
         mm.close();
     }

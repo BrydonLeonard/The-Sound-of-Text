@@ -4,9 +4,8 @@ import javax.sound.midi.MidiChannel;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Synthesizer;
+
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by biGb on 3/1/2016.
@@ -17,26 +16,6 @@ public class MidiManager {
     private int defaultLengthOff;
     private MidiChannel[] mc;
     private Synthesizer synth;
-    private Integer[] majorNotes = {0,2,4,5,7,9,11,12};
-    private Integer[] minorNotes = {0,2,3,5,7,8,11,12};
-
-    /**
-     * Gets the note for the midi player from its position in a major scale
-     * @param n Position in major scale
-     * @return Midi pitch
-     */
-    private int getMajorNote(int n){
-        return majorNotes[n % 7] + (Math.floorDiv(n, 7) * 12);
-    }
-
-    /**
-     * Gets the note for the midi player from its position in a minor scale
-     * @param n Position in minor scale
-     * @return Midi pitch
-     */
-    private int getMinorNote(int n){
-        return minorNotes[n % 7] + (Math.floorDiv(n, 7) * 12);
-    }
 
     /**
      * Initialises the synth and MidiChannels
@@ -47,6 +26,7 @@ public class MidiManager {
         synth.open();
         mc = synth.getChannels();
     }
+
     /**
      * Constructor taking parameters to set properties of the midi manager. Also opens the synth, which must be closed once it is no longer being used.
      * @param defaultIntensity Default intensity at which notes are played
@@ -79,7 +59,7 @@ public class MidiManager {
      */
     public void forMajorUp(int start, Interator method){
         for (int i = 0; i < 8; i++){
-            method.run(start + getMajorNote(i));
+            method.run(start + MusicLogic.getMajorNote(i));
         }
     }
 
@@ -90,7 +70,7 @@ public class MidiManager {
      */
     public void forMajorDown(int start, Interator method){
         for (int i = 7; i >= 0; i--){
-            method.run(start - (12 - getMajorNote(i)));
+            method.run(start - (12 - MusicLogic.getMajorNote(i)));
         }
     }
 
@@ -111,7 +91,7 @@ public class MidiManager {
      */
     public void forMinorUp(int start, Interator method){
         for (int i = 0; i < 8; i++){
-            method.run(start + getMinorNote(i));
+            method.run(start + MusicLogic.getMinorNote(i));
         }
     }
 
@@ -122,7 +102,7 @@ public class MidiManager {
      */
     public void forMinorDown(int start, Interator method){
         for (int i = 7; i >= 0; i--){
-            method.run(start - (12 - getMinorNote(i)));
+            method.run(start - (12 - MusicLogic.getMinorNote(i)));
         }
     }
 
@@ -157,8 +137,16 @@ public class MidiManager {
      */
     public void playMajor(String notes){
         int[] n = fixStringToChar(notes);
+        playMajor(notes);
+    }
+
+    /**
+     * Plays the array of notes, which are already correct and ready to play, in a major key
+     * @param n The notes
+     */
+    private void playMajor(Integer[] n){
         for (int i : n){
-            this.play(getMajorNote(i)+41);
+            this.play(MusicLogic.pitchCorrect(MusicLogic.getMajorNote(i)));
         }
     }
 
@@ -168,10 +156,59 @@ public class MidiManager {
      */
     public void playMinor(String notes){
         int[] n = fixStringToChar(notes);
+    }
+
+    /**
+     * Plays the array of notes, which are already correct and ready to play, in a minor key
+     * @param n The notes
+     */
+    private void playMinor(Integer[] n){
         for (int i : n){
-            this.play(getMinorNote(i) + 41);
+            this.play(MusicLogic.pitchCorrect(MusicLogic.getMinorNote(i)));
+        }
+
+    }
+
+    /**
+     * Takes a string and plays it, using a major scale as a base and playing chords on every 8th note
+     * @param notes The string
+     * @throws InterruptedException
+     */
+    public void playMajorChords(String notes) {
+        int[] noteArr  = fixStringToChar(notes);
+        for (int i = 0; i * 8 < noteArr.length; i++){
+            MajorChord majChord = new MajorChord(noteArr[i * 8], mc[1]);
+            majChord.play();
+
+            ArrayList<Integer> partNoteArr = new ArrayList<>();
+            for (int j = 0; j < 8 && j + i * 8 < noteArr.length; j++)
+                partNoteArr.add(noteArr[j + i*8]);
+            playMajor(partNoteArr.toArray(new Integer[partNoteArr.size()]));
+
+            majChord.stop();
         }
     }
+
+    /**
+     * Takes a string and plays it, using a major scale as a base and playing chords on every 8th note
+     * @param notes The string
+     * @throws InterruptedException
+     */
+    public void playMinorChords(String notes) {
+        int[] noteArr  = fixStringToChar(notes);
+        for (int i = 0; i * 8 < noteArr.length; i++){
+            MinorChord minChord = new MinorChord(noteArr[i * 8], mc[1]);
+            minChord.play();
+
+            ArrayList<Integer> partNoteArr = new ArrayList<>();
+            for (int j = 0; j < 8 && j + i * 8 < noteArr.length; j++)
+                partNoteArr.add(noteArr[j + i*8]);
+            playMinor(partNoteArr.toArray(new Integer[partNoteArr.size()]));
+
+            minChord.stop();
+        }
+    }
+
 
     /**
      * Takes a string and formats it as a character array that can be used by the playMajor and playMinor methods
