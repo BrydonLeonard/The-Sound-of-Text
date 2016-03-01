@@ -4,6 +4,7 @@ import javax.sound.midi.MidiChannel;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Synthesizer;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -15,8 +16,8 @@ public class MidiManager {
     private int defaultLengthOff;
     private MidiChannel[] mc;
     private Synthesizer synth;
-    private HashMap<Integer, Integer> majorNotes;
-    private HashMap<Integer, Integer> minorNotes;
+    private ArrayList<Integer> majorNotes;
+    private ArrayList<Integer> minorNotes;
 
     /**
      * Initialises the synth and MidiChannels
@@ -32,24 +33,24 @@ public class MidiManager {
      * Populates a hashmap that determintes where the nth note is, relative to the 1st note.
      */
     private void setupNotes(){
-        majorNotes = new HashMap<>();
-        minorNotes = new HashMap<>();
+        majorNotes = new ArrayList<>();
+        minorNotes = new ArrayList<>();
         int notes = 1;
-        majorNotes.put(0,0);
-        minorNotes.put(0,0);
+        majorNotes.add(0);
+        minorNotes.add(0);
         while (notes < 100){
             Integer degree = notes % 7;
-            Integer octave = Math.floorDiv(notes, 7);
             if (degree.equals(3) || degree.equals(0))
-                majorNotes.put(notes, majorNotes.get(notes-1) + 1);
-            else majorNotes.put(notes, majorNotes.get(notes-1) + 2);
+                majorNotes.add(notes, majorNotes.get(notes-1) + 1);
+            else majorNotes.add(notes, majorNotes.get(notes-1) + 2);
             if (degree.equals(2) || degree.equals(5) || degree.equals(0))
-                minorNotes.put(notes, minorNotes.get(notes-1) + 1);
-            else if (degree.equals(5))
-                minorNotes.put(notes, minorNotes.get(notes-1) + 3);
-            else minorNotes.put(notes, minorNotes.get(notes-1) + 2);
+                minorNotes.add(notes, minorNotes.get(notes-1) + 1);
+            else if (degree.equals(6))
+                minorNotes.add(notes, minorNotes.get(notes-1) + 3);
+            else minorNotes.add(notes, minorNotes.get(notes-1) + 2);
             notes++;
         }
+        System.out.println(minorNotes);
     }
 
     /**
@@ -73,8 +74,8 @@ public class MidiManager {
      */
     public MidiManager() throws MidiUnavailableException {
         this.defaultIntensity = 60;
-        this.defaultLengthOn = 200;
-        this.defaultLengthOff = 200;
+        this.defaultLengthOn = 150;
+        this.defaultLengthOff = 20;
         initSynth();
         this.setupNotes();
     }
@@ -85,14 +86,9 @@ public class MidiManager {
      * @param method A method to run on each note value
      */
     public void forMajorUp(int start, Interator method){
-        method.run(start);
-        method.run(start+2);
-        method.run(start+4);
-        method.run(start+5);
-        method.run(start+7);
-        method.run(start+9);
-        method.run(start+11);
-        method.run(start+12);
+        for (int i = 0; i < 8; i++){
+            method.run(start + majorNotes.get(i));
+        }
     }
 
     /**
@@ -101,14 +97,9 @@ public class MidiManager {
      * @param method A method to run on each note value
      */
     public void forMajorDown(int start, Interator method){
-        method.run(start);
-        method.run(start-1);
-        method.run(start-3);
-        method.run(start-5);
-        method.run(start-7);
-        method.run(start-8);
-        method.run(start-10);
-        method.run(start-12);
+        for (int i = 7; i >= 0; i--){
+            method.run(start - (12 - majorNotes.get(i)));
+        }
     }
 
     /**
@@ -118,7 +109,7 @@ public class MidiManager {
      */
     public void forMajorUpDown(int start, Interator method){
         this.forMajorUp(start, method);
-        this.forMajorDown(start+12, method);
+        this.forMajorDown(start + 12, method);
     }
 
     /**
@@ -127,14 +118,9 @@ public class MidiManager {
      * @param method A method to run on each note value
      */
     public void forMinorUp(int start, Interator method){
-        method.run(start);
-        method.run(start+2);
-        method.run(start+3);
-        method.run(start+5);
-        method.run(start+7);
-        method.run(start+8);
-        method.run(start+11);
-        method.run(start+12);
+        for (int i = 0; i < 8; i++){
+            method.run(start + minorNotes.get(i));
+        }
     }
 
     /**
@@ -143,14 +129,9 @@ public class MidiManager {
      * @param method A method to run on each note value
      */
     public void forMinorDown(int start, Interator method){
-        method.run(start);
-        method.run(start-1);
-        method.run(start-4);
-        method.run(start-5);
-        method.run(start-7);
-        method.run(start-9);
-        method.run(start-10);
-        method.run(start-12);
+        for (int i = 7; i >= 0; i--){
+            method.run(start - (12 - minorNotes.get(i)));
+        }
     }
 
     /**
@@ -189,6 +170,10 @@ public class MidiManager {
         }
     }
 
+    /**
+     * Takes a string and plays it, using a minor scale as a base
+     * @param notes The string
+     */
     public void playMinor(String notes){
         int[] n = fixStringToChar(notes);
         for (int i : n){
@@ -196,6 +181,11 @@ public class MidiManager {
         }
     }
 
+    /**
+     * Takes a string and formats it as a character array that can be used by the playMajor and playMinor methods
+     * @param notes The string
+     * @return The formatted character array
+     */
     private int[] fixStringToChar(String notes){
          char[] c = notes.toLowerCase()
                 .replaceAll("[^a-z]", "")
