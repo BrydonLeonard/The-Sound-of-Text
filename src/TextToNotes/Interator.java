@@ -1,7 +1,7 @@
 package TextToNotes;
 
 /**
- * Created by biGb on 3/1/2016.
+ * Functional interface for iterating through methods that run on ints
  */
 @FunctionalInterface
 public interface Interator {

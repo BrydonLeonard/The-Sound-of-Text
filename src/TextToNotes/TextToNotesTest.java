@@ -8,7 +8,7 @@ import java.util.Scanner;
  */
 public class TextToNotesTest {
     public static void main(String[] args) throws InvalidMidiDataException, MidiUnavailableException, InterruptedException {
-        MidiManager mm = new MidiManager(60, 150, 20);
+        MidiManager mm = new MidiManager(60, 200, 50);
 
         System.out.println("Enter your string");
         Scanner scnr = new Scanner(System.in);
@@ -18,12 +18,16 @@ public class TextToNotesTest {
         //mm.forMajorUpDown(60, (i) -> mm.play(i));
         //mm.forMinorUpDown(60, (i) -> mm.play(i));
 
-        //mm.playMajor(str);
-        //Thread.sleep(1000);
-        //mm.playMinor(str);
-        //Thread.sleep(1000);
+        //These are all the calls to the methods that play your string.
+        //Uncomment each individually or together to test them
+        mm.playMajor(str);
+        Thread.sleep(1000);
+        mm.playMinor(str);
+        Thread.sleep(1000);
         mm.playMajorChords(str);
-        //mm.playMinorChords(str);
+        Thread.sleep(1000);
+        mm.playMinorChords(str);
+        Thread.sleep(1000);
         Thread.sleep(1000);
         mm.close();
     }

@@ -3,7 +3,7 @@ package TextToNotes;
 import javax.sound.midi.MidiChannel;
 
 /**
- * Created by biGb on 3/1/2016.
+ * A parent class for all chords
  */
 public class Chord {
     protected int n1;
@@ -12,10 +12,17 @@ public class Chord {
     protected int n4;
     MidiChannel midiChannel;
 
+    /**
+     * Constructor, initialises the MidiChannel
+     * @param midiChannel The MidiChannel
+     */
     public Chord(MidiChannel midiChannel){
         this.midiChannel = midiChannel;
     }
 
+    /**
+     * Plays the chord
+     */
     public void play(){
         midiChannel.noteOn(n1, 60);
         midiChannel.noteOn(n1,60);
@@ -23,6 +30,9 @@ public class Chord {
         midiChannel.noteOn(n3,60);
     }
 
+    /**
+     * Stops playing the chord
+     */
     public void stop(){
         midiChannel.noteOff(n1);
         midiChannel.noteOff(n2);

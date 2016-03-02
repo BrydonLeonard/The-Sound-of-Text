@@ -6,6 +6,7 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Synthesizer;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 /**
  * Created by biGb on 3/1/2016.
@@ -136,8 +137,8 @@ public class MidiManager {
      * @param notes The string
      */
     public void playMajor(String notes){
-        int[] n = fixStringToChar(notes);
-        playMajor(notes);
+        Integer[] n = fixStringToChar(notes);
+        playMajor(n);
     }
 
     /**
@@ -155,7 +156,8 @@ public class MidiManager {
      * @param notes The string
      */
     public void playMinor(String notes){
-        int[] n = fixStringToChar(notes);
+        Integer[] n = fixStringToChar(notes);
+        playMinor(n);
     }
 
     /**
@@ -175,7 +177,7 @@ public class MidiManager {
      * @throws InterruptedException
      */
     public void playMajorChords(String notes) {
-        int[] noteArr  = fixStringToChar(notes);
+        Integer[] noteArr  = fixStringToChar(notes);
         for (int i = 0; i * 8 < noteArr.length; i++){
             MajorChord majChord = new MajorChord(noteArr[i * 8], mc[1]);
             majChord.play();
@@ -195,7 +197,7 @@ public class MidiManager {
      * @throws InterruptedException
      */
     public void playMinorChords(String notes) {
-        int[] noteArr  = fixStringToChar(notes);
+        Integer[] noteArr  = fixStringToChar(notes);
         for (int i = 0; i * 8 < noteArr.length; i++){
             MinorChord minChord = new MinorChord(noteArr[i * 8], mc[1]);
             minChord.play();
@@ -209,17 +211,33 @@ public class MidiManager {
         }
     }
 
+    /*//Kinda pointless, just playing with chords
+    public void playRandomChords(String notes) throws InterruptedException {
+        Random rand = new Random();
+        int[] noteArr  = fixStringToChar(notes);
+        for (int i = 0; i< noteArr.length; i++){
+            Chord chord;
+            if (rand.nextBoolean())
+                chord = new MajorChord(noteArr[i], mc[0]);
+            else chord = new MajorChord(noteArr[i]+4, mc[0]);
+
+            chord.play();
+            Thread.sleep(defaultLengthOn);
+            chord.stop();
+            Thread.sleep(defaultLengthOff);
+        }
+    }*/
 
     /**
      * Takes a string and formats it as a character array that can be used by the playMajor and playMinor methods
      * @param notes The string
      * @return The formatted character array
      */
-    private int[] fixStringToChar(String notes){
+    private Integer[] fixStringToChar(String notes){
          char[] c = notes.toLowerCase()
                 .replaceAll("[^a-z]", "")
                  .toCharArray();
-        int[] n = new int[c.length];
+        Integer[] n = new Integer[c.length];
         for (int i = 0; i < c.length; i++)
             n[i] = ((int)c[i])-97;
         return n;

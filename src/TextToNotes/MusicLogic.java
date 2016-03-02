@@ -31,6 +31,6 @@ public class MusicLogic {
      * @return The corrected pitch
      */
     public static int pitchCorrect(int i){
-        return i + 48;
+        return i + 46;
     }
 }
