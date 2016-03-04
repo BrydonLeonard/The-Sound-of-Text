@@ -6,6 +6,8 @@ package TextToNotes;
 public class MusicLogic {
     private static Integer[] majorNotes = {0,2,4,5,7,9,11,12};
     private static  Integer[] minorNotes = {0,2,3,5,7,8,11,12};
+    private static String[] noteFlatNames = {"C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"};
+    private static String[] noteSharpNames = {"C","C#","D","D#","E","F","F#","G","G#","A","A#","B"};
 
     /**
      * Gets the note for the midi player from its position in a major scale
@@ -31,6 +33,32 @@ public class MusicLogic {
      * @return The corrected pitch
      */
     public static int pitchCorrect(int i){
-        return i + 46;
+        return i + 36;
+    }
+
+    /**
+     * Gets the name of a note at a specific pitch, with flats
+     * @param i The pitch
+     * @return Note name
+     */
+    public static String getFlatNoteName(int i){
+        return noteFlatNames[i%12];
+    }
+
+    /**
+     * Gets the name of a note at a specific pitch, with sharps
+     * @param i The pitch
+     * @return Note name
+     */
+    public static String getSharpNoteName(int i){
+        return noteSharpNames[i%12];
+    }
+
+    public static int affixToMajor(int i){
+        if (i > 4)
+            return 4;
+        if (i > 2)
+            return 2;
+        return 0;
     }
 }

@@ -1,42 +1,40 @@
 package TextToNotes;
 
 import javax.sound.midi.MidiChannel;
+import java.util.ArrayList;
 
 /**
  * A parent class for all chords
  */
 public class Chord {
-    protected int n1;
-    protected int n2;
-    protected int n3;
-    protected int n4;
-    MidiChannel midiChannel;
+    protected ArrayList<Integer> notes;
 
-    /**
-     * Constructor, initialises the MidiChannel
-     * @param midiChannel The MidiChannel
-     */
-    public Chord(MidiChannel midiChannel){
-        this.midiChannel = midiChannel;
+    public Chord(){
+        notes = new ArrayList<Integer>();
     }
 
     /**
      * Plays the chord
      */
-    public void play(){
-        midiChannel.noteOn(n1, 60);
-        midiChannel.noteOn(n1,60);
-        midiChannel.noteOn(n2,60);
-        midiChannel.noteOn(n3,60);
+    public void play(MidiChannel midiChannel){
+        System.out.println(chordName() + " " + this.getClass().getSimpleName());
+        for (int i : notes){
+            midiChannel.noteOn(i+12, 50);
+        }
     }
 
     /**
      * Stops playing the chord
      */
-    public void stop(){
-        midiChannel.noteOff(n1);
-        midiChannel.noteOff(n2);
-        midiChannel.noteOff(n3);
-        midiChannel.noteOff(n4);
+    public void stop(MidiChannel midiChannel){
+        for (int i : notes){
+            midiChannel.noteOff(i+12);
+        }
+    }
+
+    public String chordName(){
+        if (notes.size() > 0)
+            return MusicLogic.getFlatNoteName(notes.get(0));
+        else return "";
     }
 }

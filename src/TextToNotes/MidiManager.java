@@ -1,9 +1,6 @@
 package TextToNotes;
 
-import javax.sound.midi.MidiChannel;
-import javax.sound.midi.MidiSystem;
-import javax.sound.midi.MidiUnavailableException;
-import javax.sound.midi.Synthesizer;
+import javax.sound.midi.*;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -22,10 +19,12 @@ public class MidiManager {
      * Initialises the synth and MidiChannels
      * @throws MidiUnavailableException
      */
-    private void initSynth() throws MidiUnavailableException {
+    private void initSynth(int instrument) throws MidiUnavailableException {
         synth = MidiSystem.getSynthesizer();
         synth.open();
         mc = synth.getChannels();
+        mc[0].programChange(0,instrument);
+        mc[1].programChange(0,instrument);
     }
 
     /**
@@ -33,13 +32,14 @@ public class MidiManager {
      * @param defaultIntensity Default intensity at which notes are played
      * @param defaultLengthOn Default length that notes are played for
      * @param defaultLengthOff Default time between notes
+     * @param instrument The instrument to select from soundbank 0
      * @throws MidiUnavailableException Thrown when MidiSystem is unavailable
      */
-    public MidiManager(int defaultIntensity, int defaultLengthOn, int defaultLengthOff) throws MidiUnavailableException {
+    public MidiManager(int defaultIntensity, int defaultLengthOn, int defaultLengthOff, int instrument) throws MidiUnavailableException {
         this.defaultIntensity = defaultIntensity;
         this.defaultLengthOn = defaultLengthOn;
         this.defaultLengthOff = defaultLengthOff;
-        this.initSynth();
+        this.initSynth(instrument);
 }
 
     /**
@@ -50,7 +50,7 @@ public class MidiManager {
         this.defaultIntensity = 60;
         this.defaultLengthOn = 150;
         this.defaultLengthOff = 20;
-        initSynth();
+        initSynth(1);
     }
 
     /**
@@ -132,6 +132,21 @@ public class MidiManager {
         }
     }
 
+    public void play(int... i){
+        try{
+            for (int j : i){
+                mc[0].noteOn(j, defaultIntensity);
+            }
+            Thread.sleep(defaultLengthOn);
+            for (int j : i){
+                mc[0].noteOff(j, defaultIntensity);
+            }
+            Thread.sleep(defaultLengthOff);
+        }catch(InterruptedException e){
+            System.out.println("Something went wrong while playing some notes");
+        }
+    }
+
     /**
      * Takes a string and plays it, using a major scale as a base
      * @param notes The string
@@ -179,15 +194,15 @@ public class MidiManager {
     public void playMajorChords(String notes) {
         Integer[] noteArr  = fixStringToChar(notes);
         for (int i = 0; i * 8 < noteArr.length; i++){
-            MajorChord majChord = new MajorChord(noteArr[i * 8], mc[1]);
-            majChord.play();
+            MajorChord majChord = (MajorChord)ChordManager.BuildChord(noteArr[i * 8], false, false, 0);
+            majChord.play(mc[1]);
 
             ArrayList<Integer> partNoteArr = new ArrayList<>();
             for (int j = 0; j < 8 && j + i * 8 < noteArr.length; j++)
                 partNoteArr.add(noteArr[j + i*8]);
             playMajor(partNoteArr.toArray(new Integer[partNoteArr.size()]));
 
-            majChord.stop();
+            majChord.stop(mc[1]);
         }
     }
 
@@ -199,16 +214,43 @@ public class MidiManager {
     public void playMinorChords(String notes) {
         Integer[] noteArr  = fixStringToChar(notes);
         for (int i = 0; i * 8 < noteArr.length; i++){
-            MinorChord minChord = new MinorChord(noteArr[i * 8], mc[1]);
-            minChord.play();
+            MinorChord minChord = (MinorChord)ChordManager.BuildChord(noteArr[i * 8], true, true, 0);
+            minChord.play(mc[1]);
 
             ArrayList<Integer> partNoteArr = new ArrayList<>();
             for (int j = 0; j < 8 && j + i * 8 < noteArr.length; j++)
                 partNoteArr.add(noteArr[j + i*8]);
             playMinor(partNoteArr.toArray(new Integer[partNoteArr.size()]));
 
-            minChord.stop();
+            minChord.stop(mc[1]);
         }
+    }
+
+    /**
+     * Splits the string in 2 and plays half on each hand
+     * @param notes The string
+     */
+    public void playMajorTwoHands(String notes){
+        String notes1 = notes.substring(0,notes.length()/2);
+        String notes2 = notes.substring(notes.length()/2, notes.length());
+        Integer[] readyNotes1 = fixStringToChar(notes1);
+        Integer[] readyNotes2 = fixStringToChar(notes2);
+        for (int i = 0; i < readyNotes1.length && i < readyNotes2.length; i++) {
+            play(MusicLogic.pitchCorrect(MusicLogic.getMajorNote(readyNotes1[i])),
+                    MusicLogic.pitchCorrect(MusicLogic.getMajorNote(readyNotes2[i])));
+        }
+    }
+
+    public void playMajorWithProgression(String notes){
+        Integer[] noteArr = fixStringToChar(notes);
+        ChordProgression progression = new ChordProgression(4);
+        for (int i = 0; i < noteArr.length; i++){
+            if (i % Math.min(Math.floorDiv(noteArr.length,4), 8) == 0){
+                progression.playNext(mc[1]);
+            }
+            play(MusicLogic.pitchCorrect(MusicLogic.getMajorNote(noteArr[i])));
+        }
+        progression.stop(mc[1]);
     }
 
     /*//Kinda pointless, just playing with chords
@@ -241,6 +283,15 @@ public class MidiManager {
         for (int i = 0; i < c.length; i++)
             n[i] = ((int)c[i])-97;
         return n;
+    }
+
+    /**
+     * Changes the active instrument
+     * @param newInstrument The index of the new instrument
+     */
+    public void switchInstrument(int newInstrument){
+        mc[0].programChange(0, newInstrument);
+        mc[1].programChange(0, newInstrument);
     }
 
     /**
